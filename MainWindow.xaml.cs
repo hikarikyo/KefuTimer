@@ -5,6 +5,7 @@ using System.Windows.Media; // Added for MediaPlayer
 using Microsoft.Win32; // Added for OpenFileDialog
 using System.IO; // Added for Path.GetFileName
 using System.Media; // Added for SystemSounds.Exclamation.Play()
+using System.Linq; // Added for LINQ operations
 
 namespace KefuTimer;
 
@@ -36,6 +37,56 @@ public partial class MainWindow : Window
         _timeUpMediaPlayer = new MediaPlayer(); // Initialize time-up media player
 
         this.Closing += MainWindow_Closing; // Dispose MediaPlayers on close
+
+        string projectRoot = GetProjectRootDirectory();
+
+        // Automatic BGM selection
+        string bgmDirectory = Path.Combine(projectRoot, "Music", "BGM");
+        string? bgmFile = LoadFirstAudioFile(bgmDirectory);
+        if (bgmFile != null)
+        {
+            _mediaPlayer.Open(new Uri(bgmFile));
+            BGMFileName.Text = Path.GetFileName(bgmFile);
+        }
+
+        // Automatic Time-Up Sound selection
+        string chimeDirectory = Path.Combine(projectRoot, "Music", "CHIME");
+        string? chimeFile = LoadFirstAudioFile(chimeDirectory);
+        if (chimeFile != null)
+        {
+            _timeUpMediaPlayer.Open(new Uri(chimeFile));
+            TimeUpSoundFileName.Text = Path.GetFileName(chimeFile);
+        }
+    }
+
+    private string GetProjectRootDirectory()
+    {
+        string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+        DirectoryInfo? directory = new DirectoryInfo(currentDirectory);
+
+        while (directory != null && !directory.GetFiles("KefuTimer.csproj").Any() && !directory.GetFiles("KefuTimer.sln").Any())
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? AppDomain.CurrentDomain.BaseDirectory;
+    }
+
+    private string? LoadFirstAudioFile(string directoryPath)
+    {
+        if (Directory.Exists(directoryPath))
+        {
+            var audioFiles = Directory.EnumerateFiles(directoryPath,
+                                                       "*.*",
+                                                       SearchOption.TopDirectoryOnly)
+                                      .Where(s => s.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) ||
+                                                  s.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ||
+                                                  s.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
+                                      .OrderBy(s => s) // Order by name to get a consistent "first" file
+                                      .FirstOrDefault();
+            return audioFiles;
+        }
+        return null;
     }
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
