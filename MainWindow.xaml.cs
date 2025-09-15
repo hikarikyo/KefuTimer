@@ -1,6 +1,9 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using System.Windows.Media; // Added for MediaPlayer
+using Microsoft.Win32; // Added for OpenFileDialog
+using System.IO; // Added for Path.GetFileName
 
 namespace KefuTimer;
 
@@ -13,6 +16,7 @@ public partial class MainWindow : Window
     private TimeSpan _timeRemaining;
     private TimeSpan _initialTime; // Store the initial time set by the user
     private bool _timerRunning;
+    private MediaPlayer _mediaPlayer; // Added for BGM playback
 
     public MainWindow()
     {
@@ -23,6 +27,22 @@ public partial class MainWindow : Window
         _timer = new DispatcherTimer();
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
+
+        _mediaPlayer = new MediaPlayer();
+        _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded; // Loop BGM
+        this.Closing += MainWindow_Closing; // Dispose MediaPlayer on close
+    }
+
+    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        _mediaPlayer.Stop();
+        _mediaPlayer.Close();
+    }
+
+    private void MediaPlayer_MediaEnded(object? sender, EventArgs e)
+    {
+        _mediaPlayer.Position = TimeSpan.Zero; // Loop BGM
+        _mediaPlayer.Play();
     }
 
     private void Timer_Tick(object? sender, EventArgs e)
@@ -37,6 +57,7 @@ public partial class MainWindow : Window
             _timer.Stop();
             _timerRunning = false;
             StartPauseButton.Content = "開始";
+            _mediaPlayer.Stop(); // Stop BGM when timer finishes
             MessageBox.Show("時間になりました！", "KefuTimer", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
@@ -51,11 +72,16 @@ public partial class MainWindow : Window
         if (_timerRunning)
         {
             _timer.Stop();
+            _mediaPlayer.Pause(); // Pause BGM
             StartPauseButton.Content = "開始";
         }
         else
         {
             _timer.Start();
+            if (_mediaPlayer.Source != null)
+            {
+                _mediaPlayer.Play(); // Play BGM
+            }
             StartPauseButton.Content = "一時停止";
         }
         _timerRunning = !_timerRunning;
@@ -65,6 +91,7 @@ public partial class MainWindow : Window
     {
         _timer.Stop();
         _timerRunning = false;
+        _mediaPlayer.Stop(); // Stop BGM
         _timeRemaining = _initialTime; // Reset to the initial set time
         UpdateTimerDisplay();
         StartPauseButton.Content = "開始";
@@ -131,4 +158,15 @@ public partial class MainWindow : Window
     private void MinutesDecrement_Click(object sender, RoutedEventArgs e) => UpdateMinutes(-1);
     private void SecondsIncrement_Click(object sender, RoutedEventArgs e) => UpdateSeconds(1);
     private void SecondsDecrement_Click(object sender, RoutedEventArgs e) => UpdateSeconds(-1);
+
+    private void SelectBGMButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog();
+        openFileDialog.Filter = "Audio files (*.mp3;*.wav;*.ogg)|*.mp3;*.wav;*.ogg|All files (*.*)|*.*";
+        if (openFileDialog.ShowDialog() == true)
+        {
+            _mediaPlayer.Open(new Uri(openFileDialog.FileName));
+            BGMFileName.Text = Path.GetFileName(openFileDialog.FileName);
+        }
+    }
 }

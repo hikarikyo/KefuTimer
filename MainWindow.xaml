@@ -9,6 +9,10 @@
     <Grid>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+            <Button x:Name="SelectBGMButton" Content="BGMを選択" Width="100" Height="30" Margin="0,0,10,0" Click="SelectBGMButton_Click"/>
+            <TextBlock x:Name="BGMFileName" Text="BGMが選択されていません" VerticalAlignment="Center"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
             <Button Content="-" Width="30" Height="30" Click="MinutesDecrement_Click" Margin="0,0,2,0"/>
             <TextBox x:Name="MinutesInput" Width="50" Text="05" FontSize="24" TextAlignment="Center" Margin="0,0,2,0"/>
             <Button Content="+" Width="30" Height="30" Click="MinutesIncrement_Click" Margin="0,0,5,0"/>
