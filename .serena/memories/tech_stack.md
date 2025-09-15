@@ -1,1 +1,1 @@
-The project is a C# WPF application targeting .NET 8.0-windows. It uses the standard WPF UI framework.
+The project is a C# WPF application targeting .NET 8.0-windows. It uses the standard WPF UI framework. For audio playback (BGM and time-up sounds), it utilizes the `System.Windows.Media.MediaPlayer` class.

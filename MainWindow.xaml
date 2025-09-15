@@ -13,6 +13,10 @@
             <TextBlock x:Name="BGMFileName" Text="BGMが選択されていません" VerticalAlignment="Center"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+            <Button x:Name="SelectTimeUpSoundButton" Content="終了音を選択" Width="100" Height="30" Margin="0,0,10,0" Click="SelectTimeUpSoundButton_Click"/>
+            <TextBlock x:Name="TimeUpSoundFileName" Text="終了音が選択されていません" VerticalAlignment="Center"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
             <Button Content="-" Width="30" Height="30" Click="MinutesDecrement_Click" Margin="0,0,2,0"/>
             <TextBox x:Name="MinutesInput" Width="50" Text="05" FontSize="24" TextAlignment="Center" Margin="0,0,2,0"/>
             <Button Content="+" Width="30" Height="30" Click="MinutesIncrement_Click" Margin="0,0,5,0"/>
@@ -30,6 +34,7 @@
             <Button x:Name="StartPauseButton" Content="開始" Width="100" Height="40" Margin="0,0,10,0" Click="StartPauseButton_Click"/>
             <Button x:Name="ResetButton" Content="リセット" Width="100" Height="40" Click="ResetButton_Click"/>
         </StackPanel>
+        <CheckBox x:Name="AlwaysOnTopCheckBox" Content="常に最前面に表示" Margin="0,20,0,0" Checked="AlwaysOnTopCheckBox_Checked" Unchecked="AlwaysOnTopCheckBox_Unchecked" HorizontalAlignment="Center"/>
     </StackPanel>
 </Grid>
 </Window>

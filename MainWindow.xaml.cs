@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using System.Windows.Media; // Added for MediaPlayer
 using Microsoft.Win32; // Added for OpenFileDialog
 using System.IO; // Added for Path.GetFileName
+using System.Media; // Added for SystemSounds.Exclamation.Play()
 
 namespace KefuTimer;
 
@@ -17,6 +18,7 @@ public partial class MainWindow : Window
     private TimeSpan _initialTime; // Store the initial time set by the user
     private bool _timerRunning;
     private MediaPlayer _mediaPlayer; // Added for BGM playback
+    private MediaPlayer _timeUpMediaPlayer; // Added for time-up sound playback
 
     public MainWindow()
     {
@@ -30,13 +32,18 @@ public partial class MainWindow : Window
 
         _mediaPlayer = new MediaPlayer();
         _mediaPlayer.MediaEnded += MediaPlayer_MediaEnded; // Loop BGM
-        this.Closing += MainWindow_Closing; // Dispose MediaPlayer on close
+        
+        _timeUpMediaPlayer = new MediaPlayer(); // Initialize time-up media player
+
+        this.Closing += MainWindow_Closing; // Dispose MediaPlayers on close
     }
 
     private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         _mediaPlayer.Stop();
         _mediaPlayer.Close();
+        _timeUpMediaPlayer.Stop(); // Stop and close time-up media player
+        _timeUpMediaPlayer.Close();
     }
 
     private void MediaPlayer_MediaEnded(object? sender, EventArgs e)
@@ -58,7 +65,16 @@ public partial class MainWindow : Window
             _timerRunning = false;
             StartPauseButton.Content = "開始";
             _mediaPlayer.Stop(); // Stop BGM when timer finishes
-            MessageBox.Show("時間になりました！", "KefuTimer", MessageBoxButton.OK, MessageBoxImage.Information);
+            
+            if (_timeUpMediaPlayer.Source != null)
+            {
+                _timeUpMediaPlayer.Position = TimeSpan.Zero; // Reset position to play again
+                _timeUpMediaPlayer.Play(); // Play time-up sound
+            }
+            else
+            {
+                System.Media.SystemSounds.Exclamation.Play(); // Fallback to system sound
+            }
         }
     }
 
@@ -168,5 +184,26 @@ public partial class MainWindow : Window
             _mediaPlayer.Open(new Uri(openFileDialog.FileName));
             BGMFileName.Text = Path.GetFileName(openFileDialog.FileName);
         }
+    }
+
+    private void SelectTimeUpSoundButton_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog openFileDialog = new OpenFileDialog();
+        openFileDialog.Filter = "Audio files (*.mp3;*.wav;*.ogg)|*.mp3;*.wav;*.ogg|All files (*.*)|*.*";
+        if (openFileDialog.ShowDialog() == true)
+        {
+            _timeUpMediaPlayer.Open(new Uri(openFileDialog.FileName));
+            TimeUpSoundFileName.Text = Path.GetFileName(openFileDialog.FileName);
+        }
+    }
+
+    private void AlwaysOnTopCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        this.Topmost = true;
+    }
+
+    private void AlwaysOnTopCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        this.Topmost = false;
     }
 }
