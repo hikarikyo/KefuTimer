@@ -1,0 +1,1 @@
+The project is a personal timer application named 'KefuTimer'. Its purpose is to provide a simple timer functionality for the user.

@@ -1,0 +1,1 @@
+The project is a C# WPF application targeting .NET 8.0-windows. It uses the standard WPF UI framework.
