@@ -48,4 +48,5 @@
 
 ---
 Music by 甘茶の音楽工房（https://amachamusic.chagasi.com/index.html）
+
 Music by 効果音ラボ（https://soundeffect-lab.info/）
