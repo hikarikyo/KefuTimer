@@ -8,4 +8,28 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="Music\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="CopyPublishedFiles" AfterTargets="Publish">
+        <PropertyGroup>
+      <ActualPublishDir Condition="'$(PublishDir)' == ''">$(OutputPath)$(TargetFramework)\$(RuntimeIdentifier)\publish\</ActualPublishDir>
+      <ActualPublishDir Condition="'$(PublishDir)' != ''">$(PublishDir)</ActualPublishDir>
+      <DestinationDir>$(ProjectDir)けふタイマー\</DestinationDir>
+    </PropertyGroup>
+
+    <RemoveDir Directories="$(DestinationDir)" Condition="Exists('$(DestinationDir)')" />
+    <MakeDir Directories="$(DestinationDir)" />
+
+    <ItemGroup>
+      <FilesToCopy Include="$(ActualPublishDir)**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(DestinationDir)%(RecursiveDir)" />
+    <Message Text="Copied published files from $(ActualPublishDir) to $(DestinationDir)" Importance="high" />
+  </Target>
+
 </Project>

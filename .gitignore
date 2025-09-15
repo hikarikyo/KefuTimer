@@ -68,3 +68,6 @@ Desktop.ini
 *.g.cs
 *.g.i.cs
 *.xaml.cs.bak
+
+# Published Output
+けふタイマー/
