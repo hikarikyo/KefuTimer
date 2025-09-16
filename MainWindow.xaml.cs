@@ -257,4 +257,20 @@ public partial class MainWindow : Window
     {
         this.Topmost = false;
     }
+
+    private void MuteBGMCheckBox_Checked(object sender, RoutedEventArgs e)
+    {
+        if (_mediaPlayer != null)
+        {
+            _mediaPlayer.IsMuted = true;
+        }
+    }
+
+    private void MuteBGMCheckBox_Unchecked(object sender, RoutedEventArgs e)
+    {
+        if (_mediaPlayer != null)
+        {
+            _mediaPlayer.IsMuted = false;
+        }
+    }
 }
