@@ -5,37 +5,113 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KefuTimer"
         mc:Ignorable="d"
-        Title="MainWindow" SizeToContent="WidthAndHeight">
-    <Grid>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
-            <Button x:Name="SelectBGMButton" Content="BGMを選択" Width="100" Height="30" Margin="0,0,10,0" Click="SelectBGMButton_Click"/>
-            <TextBlock x:Name="BGMFileName" Text="BGMが選択されていません" VerticalAlignment="Center"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
-            <Button x:Name="SelectTimeUpSoundButton" Content="終了音を選択" Width="100" Height="30" Margin="0,0,10,0" Click="SelectTimeUpSoundButton_Click"/>
-            <TextBlock x:Name="TimeUpSoundFileName" Text="終了音が選択されていません" VerticalAlignment="Center"/>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
-            <Button Content="-" Width="30" Height="30" Click="MinutesDecrement_Click" Margin="0,0,2,0"/>
-            <TextBox x:Name="MinutesInput" Width="50" Text="05" FontSize="24" TextAlignment="Center" Margin="0,0,2,0"/>
-            <Button Content="+" Width="30" Height="30" Click="MinutesIncrement_Click" Margin="0,0,5,0"/>
-            <TextBlock Text="分" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+        Title="けふタイマー" SizeToContent="WidthAndHeight" Background="#FFF0F0F0">
+    <Window.Resources>
+        <!-- Primary action button style (Start, Reset) -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#FF007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF0099FF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF00BFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
-            <Button Content="-" Width="30" Height="30" Click="SecondsDecrement_Click" Margin="0,0,2,0"/>
-            <TextBox x:Name="SecondsInput" Width="50" Text="00" FontSize="24" TextAlignment="Center" Margin="0,0,2,0"/>
-            <Button Content="+" Width="30" Height="30" Click="SecondsIncrement_Click" Margin="0,0,5,0"/>
-            <TextBlock Text="秒" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            
-            <Button x:Name="SetTimeButton" Content="時間設定" Width="80" Height="30" Click="SetTimeButton_Click"/>
-        </StackPanel>
-        <TextBlock x:Name="TimerDisplay" Text="00:00" FontSize="72" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button x:Name="StartPauseButton" Content="開始" Width="100" Height="40" Margin="0,0,10,0" Click="StartPauseButton_Click"/>
-            <Button x:Name="ResetButton" Content="リセット" Width="100" Height="40" Click="ResetButton_Click"/>
-        </StackPanel>
-        <CheckBox x:Name="AlwaysOnTopCheckBox" Content="常に最前面に表示" Margin="0,20,0,0" Checked="AlwaysOnTopCheckBox_Checked" Unchecked="AlwaysOnTopCheckBox_Unchecked" HorizontalAlignment="Center"/>
-        <CheckBox x:Name="MuteBGMCheckBox" Content="BGMをミュート" Margin="0,10,0,0" Checked="MuteBGMCheckBox_Checked" Unchecked="MuteBGMCheckBox_Unchecked" HorizontalAlignment="Center"/>
-    </StackPanel>
-</Grid>
+        <!-- Secondary/settings button style -->
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#FF333333"/>
+            <Setter Property="BorderBrush" Value="#FFCCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="MinWidth" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FFF5F5F5"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FFEEEEEE"/>
+                                <Setter Property="BorderBrush" Value="#FF999999"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="設定">
+                <StackPanel>
+                    <TextBlock Text="BGM:" Margin="5,5,5,2"/>
+                    <ComboBox x:Name="BGMComboBox" Width="250" SelectionChanged="BGMComboBox_SelectionChanged" Margin="5,0,5,5"/>
+                    <Separator/>
+                    <TextBlock Text="終了音:" Margin="5,5,5,2"/>
+                    <ComboBox x:Name="TimeUpComboBox" Width="250" SelectionChanged="TimeUpComboBox_SelectionChanged" Margin="5,0,5,5"/>
+                </StackPanel>
+            </MenuItem>
+        </Menu>
+        <Grid Margin="20,10,20,20">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="White" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                            <Button Content="1分" Tag="1" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="2分" Tag="2" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="3分" Tag="3" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="4分" Tag="4" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="5分" Tag="5" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                        </StackPanel>
+                        <Separator Margin="0,5"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+                            <Button Content="-" Width="30" Height="30" Click="MinutesDecrement_Click" Style="{StaticResource SecondaryButton}"/>
+                            <TextBox x:Name="MinutesInput" Width="50" Text="05" FontSize="24" TextAlignment="Center" Margin="2,0" VerticalContentAlignment="Center" BorderBrush="#FFABADB3"/>
+                            <Button Content="+" Width="30" Height="30" Click="MinutesIncrement_Click" Style="{StaticResource SecondaryButton}"/>
+                            <TextBlock Text="分" FontSize="24" VerticalAlignment="Center" Margin="5,0,10,0"/>
+
+                            <Button Content="-" Width="30" Height="30" Click="SecondsDecrement_Click" Style="{StaticResource SecondaryButton}"/>
+                            <TextBox x:Name="SecondsInput" Width="50" Text="00" FontSize="24" TextAlignment="Center" Margin="2,0" VerticalContentAlignment="Center" BorderBrush="#FFABADB3"/>
+                            <Button Content="+" Width="30" Height="30" Click="SecondsIncrement_Click" Style="{StaticResource SecondaryButton}"/>
+                            <TextBlock Text="秒" FontSize="24" VerticalAlignment="Center" Margin="5,0,10,0"/>
+                            
+                            <Button x:Name="SetTimeButton" Content="時間設定" Click="SetTimeButton_Click" Style="{StaticResource SecondaryButton}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <TextBlock x:Name="TimerDisplay" Text="00:00" FontSize="100" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="StartPauseButton" Content="開始" Width="130" Height="50" Margin="0,0,10,0" Click="StartPauseButton_Click" FontSize="18" Style="{StaticResource PrimaryButton}"/>
+                    <Button x:Name="ResetButton" Content="リセット" Width="130" Height="50" Click="ResetButton_Click" FontSize="18" Style="{StaticResource PrimaryButton}"/>
+                </StackPanel>
+                <StackPanel Margin="0,20,0,0" HorizontalAlignment="Center">
+                    <CheckBox x:Name="AlwaysOnTopCheckBox" Content="常に最前面に表示" Margin="0,5,0,0" Checked="AlwaysOnTopCheckBox_Checked" Unchecked="AlwaysOnTopCheckBox_Unchecked" Foreground="Gray"/>
+                    <CheckBox x:Name="MuteBGMCheckBox" Content="BGMをミュート" Margin="0,5,0,0" Checked="MuteBGMCheckBox_Checked" Unchecked="MuteBGMCheckBox_Unchecked" Foreground="Gray"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
 </Window>
