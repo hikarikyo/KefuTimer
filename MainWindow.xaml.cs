@@ -6,6 +6,7 @@ using System.Media;
 using System.Windows;
 using System.Windows.Controls; // Added for ComboBox
 using System.Windows.Media;
+using System.Windows.Shell;
 using System.Windows.Threading;
 
 namespace KefuTimer
@@ -20,6 +21,9 @@ namespace KefuTimer
         private MediaPlayer _timeUpMediaPlayer;
         private List<string> _bgmFiles = new List<string>(); // Store full paths
         private List<string> _chimeFiles = new List<string>(); // Store full paths
+        private double _initialWidth;
+        private double _initialHeight;
+        private double _initialFontSize;
 
         public MainWindow()
         {
@@ -41,12 +45,46 @@ namespace KefuTimer
             LoadAndBindAudioFiles();
         }
 
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Set the minimum size to the initial size
+            this.MinWidth = this.ActualWidth;
+            this.MinHeight = this.ActualHeight;
+
+            // Store initial values for scaling
+            _initialWidth = this.ActualWidth;
+            _initialHeight = this.ActualHeight;
+            _initialFontSize = TimerDisplay.FontSize;
+
+            // Stop auto-sizing to prevent feedback loops.
+            this.SizeToContent = SizeToContent.Manual;
+        }
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_initialWidth > 0) // Ensure initial values are set
+            {
+                // Calculate the ratio of size change from the initial size
+                double widthRatio = e.NewSize.Width / _initialWidth;
+                double heightRatio = e.NewSize.Height / _initialHeight;
+
+                // Use the smaller ratio to ensure the text fits within the new window dimensions
+                double ratio = Math.Min(widthRatio, heightRatio);
+
+                // Calculate the new font size
+                double newFontSize = _initialFontSize * ratio;
+
+                // Set the new font size, ensuring it's a positive value
+                TimerDisplay.FontSize = newFontSize > 1 ? newFontSize : 1;
+            }
+        }
+
         private void LoadAndBindAudioFiles()
         {
-            string projectRoot = GetProjectRootDirectory();
+            string baseDirectory = GetApplicationBaseDirectory();
 
             // Load BGM files
-            string bgmDirectory = Path.Combine(projectRoot, "Music", "BGM");
+            string bgmDirectory = Path.Combine(baseDirectory, "Music", "BGM");
             _bgmFiles = LoadAudioFiles(bgmDirectory);
             BGMComboBox.ItemsSource = _bgmFiles.Select(Path.GetFileName).ToList();
             if (_bgmFiles.Any())
@@ -56,7 +94,7 @@ namespace KefuTimer
             }
 
             // Load Time-Up Sound files
-            string chimeDirectory = Path.Combine(projectRoot, "Music", "CHIME");
+            string chimeDirectory = Path.Combine(baseDirectory, "Music", "CHIME");
             _chimeFiles = LoadAudioFiles(chimeDirectory);
             TimeUpComboBox.ItemsSource = _chimeFiles.Select(Path.GetFileName).ToList();
             if (_chimeFiles.Any())
@@ -66,17 +104,9 @@ namespace KefuTimer
             }
         }
 
-        private string GetProjectRootDirectory()
+        private string GetApplicationBaseDirectory()
         {
-            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            DirectoryInfo? directory = new DirectoryInfo(currentDirectory);
-
-            while (directory != null && !directory.GetFiles("KefuTimer.csproj").Any() && !directory.GetFiles("KefuTimer.sln").Any())
-            {
-                directory = directory.Parent;
-            }
-
-            return directory?.FullName ?? AppDomain.CurrentDomain.BaseDirectory;
+            return AppContext.BaseDirectory;
         }
 
         private List<string> LoadAudioFiles(string directoryPath)
@@ -135,6 +165,11 @@ namespace KefuTimer
             {
                 _timeRemaining = _timeRemaining.Subtract(TimeSpan.FromSeconds(1));
                 UpdateTimerDisplay();
+
+                if (_initialTime.TotalSeconds > 0)
+                {
+                    taskbarItemInfo.ProgressValue = _timeRemaining.TotalSeconds / _initialTime.TotalSeconds;
+                }
             }
             else
             {
@@ -143,8 +178,11 @@ namespace KefuTimer
                 StartPauseButton.Content = "開始";
                 _mediaPlayer.Stop();
 
+                taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+
                 if (_timeUpMediaPlayer.Source != null)
                 {
+                    _timeUpMediaPlayer.Stop();
                     _timeUpMediaPlayer.Position = TimeSpan.Zero;
                     _timeUpMediaPlayer.Play();
                 }
@@ -167,15 +205,21 @@ namespace KefuTimer
                 _timer.Stop();
                 _mediaPlayer.Pause();
                 StartPauseButton.Content = "開始";
+                taskbarItemInfo.ProgressState = TaskbarItemProgressState.Paused;
             }
             else
             {
+                if (_initialTime.TotalSeconds <= 0)
+                {
+                    return; // Do not start if time is zero
+                }
                 _timer.Start();
                 if (_mediaPlayer.Source != null)
                 {
                     _mediaPlayer.Play();
                 }
                 StartPauseButton.Content = "一時停止";
+                taskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
             }
             _timerRunning = !_timerRunning;
         }
@@ -188,6 +232,7 @@ namespace KefuTimer
             _timeRemaining = _initialTime;
             UpdateTimerDisplay();
             StartPauseButton.Content = "開始";
+            taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
         }
 
         private void SetTimeButton_Click(object sender, RoutedEventArgs e)
@@ -206,6 +251,7 @@ namespace KefuTimer
                     _initialTime = new TimeSpan(0, minutes, seconds);
                     _timeRemaining = _initialTime;
                     UpdateTimerDisplay();
+                    taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
                 }
                 else
                 {
@@ -233,6 +279,7 @@ namespace KefuTimer
                 UpdateTimerDisplay();
                 MinutesInput.Text = minutes.ToString("D2");
                 SecondsInput.Text = "00";
+                taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
             }
         }
 

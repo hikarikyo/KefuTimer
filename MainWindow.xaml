@@ -5,7 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KefuTimer"
         mc:Ignorable="d"
-        Title="けふタイマー" SizeToContent="WidthAndHeight" Background="#FFF0F0F0">
+        Title="けふタイマー" SizeToContent="WidthAndHeight" Background="#FFF0F0F0"
+        Loaded="MainWindow_Loaded" SizeChanged="MainWindow_SizeChanged">
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="taskbarItemInfo" ProgressState="None" ProgressValue="0"/>
+    </Window.TaskbarItemInfo>
     <Window.Resources>
         <!-- Primary action button style (Start, Reset) -->
         <Style x:Key="PrimaryButton" TargetType="Button">
@@ -85,6 +89,11 @@
                             <Button Content="3分" Tag="3" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
                             <Button Content="4分" Tag="4" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
                             <Button Content="5分" Tag="5" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="6分" Tag="6" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="7分" Tag="7" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="8分" Tag="8" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="9分" Tag="9" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
+                            <Button Content="10分" Tag="10" Click="PresetButton_Click" Style="{StaticResource SecondaryButton}"/>
                         </StackPanel>
                         <Separator Margin="0,5"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
@@ -107,9 +116,9 @@
                     <Button x:Name="StartPauseButton" Content="開始" Width="130" Height="50" Margin="0,0,10,0" Click="StartPauseButton_Click" FontSize="18" Style="{StaticResource PrimaryButton}"/>
                     <Button x:Name="ResetButton" Content="リセット" Width="130" Height="50" Click="ResetButton_Click" FontSize="18" Style="{StaticResource PrimaryButton}"/>
                 </StackPanel>
-                <StackPanel Margin="0,20,0,0" HorizontalAlignment="Center">
-                    <CheckBox x:Name="AlwaysOnTopCheckBox" Content="常に最前面に表示" Margin="0,5,0,0" Checked="AlwaysOnTopCheckBox_Checked" Unchecked="AlwaysOnTopCheckBox_Unchecked" Foreground="Gray"/>
-                    <CheckBox x:Name="MuteBGMCheckBox" Content="BGMをミュート" Margin="0,5,0,0" Checked="MuteBGMCheckBox_Checked" Unchecked="MuteBGMCheckBox_Unchecked" Foreground="Gray"/>
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Center">
+                    <CheckBox x:Name="AlwaysOnTopCheckBox" Content="常に最前面に表示" Margin="0,0,10,0" Checked="AlwaysOnTopCheckBox_Checked" Unchecked="AlwaysOnTopCheckBox_Unchecked" Foreground="Gray" VerticalAlignment="Center"/>
+                    <CheckBox x:Name="MuteBGMCheckBox" Content="BGMをミュート" Margin="10,0,0,0" Checked="MuteBGMCheckBox_Checked" Unchecked="MuteBGMCheckBox_Unchecked" Foreground="Gray" VerticalAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
         </Grid>

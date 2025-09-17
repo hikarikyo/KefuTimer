@@ -7,6 +7,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>icon.ico</ApplicationIcon>
+
+    <!-- 単一ファイル発行用の設定 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained> <!-- フレームワーク依存 -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +25,7 @@
 
   <Target Name="CopyPublishedFiles" AfterTargets="Publish">
         <PropertyGroup>
-      <ActualPublishDir Condition="'$(PublishDir)' == ''">$(OutputPath)$(TargetFramework)\$(RuntimeIdentifier)\publish\</ActualPublishDir>
+      <ActualPublishDir Condition="'$(PublishDir)' == ''">$(OutputPath)$(TargetFramework)$(RuntimeIdentifier)\publish\</ActualPublishDir>
       <ActualPublishDir Condition="'$(PublishDir)' != ''">$(PublishDir)</ActualPublishDir>
       <DestinationDir>$(ProjectDir)けふタイマー\</DestinationDir>
     </PropertyGroup>
@@ -29,11 +34,38 @@
     <MakeDir Directories="$(DestinationDir)" />
 
     <ItemGroup>
-      <FilesToCopy Include="$(ActualPublishDir)**\*.*" />
+      <FilesToCopy Include="$(ActualPublishDir)KefuTimer.exe" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(DestinationDir)%(RecursiveDir)" />
-    <Message Text="Copied published files from $(ActualPublishDir) to $(DestinationDir)" Importance="high" />
+    <ItemGroup Condition=" '$(SkipPdf)' != 'true' ">
+      <ReadmePdfSource Include="obj/$(Configuration)/$(TargetFramework)/README.pdf" Condition="Exists('obj/$(Configuration)/$(TargetFramework)/README.pdf')" />
+    </ItemGroup>
+
+    <!-- Musicフォルダの階層構造を維持してコピー -->
+    <MakeDir Directories="$(DestinationDir)Music\BGM\" />
+    <MakeDir Directories="$(DestinationDir)Music\CHIME\" />
+
+    <ItemGroup>
+      <BGMFiles Include="$(ActualPublishDir)Music\BGM\*.*" />
+      <CHIMEFiles Include="$(ActualPublishDir)Music\CHIME\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(DestinationDir)" />
+    <Copy SourceFiles="@(ReadmePdfSource)" DestinationFolder="$(DestinationDir)" />
+    <Copy SourceFiles="@(BGMFiles)" DestinationFolder="$(DestinationDir)Music\BGM\" />
+    <Copy SourceFiles="@(CHIMEFiles)" DestinationFolder="$(DestinationDir)Music\CHIME\" />
+    <Message Text="Copied published files to $(DestinationDir)" Importance="high" />
+  </Target>
+
+  <Target Name="ConvertReadmeToPdf" BeforeTargets="BeforeBuild" Condition=" '$(Configuration)' == 'Release' AND '$(SkipPdf)' != 'true' " Inputs="README.md" Outputs="obj/$(Configuration)/$(TargetFramework)/README.pdf">
+    <Message Text="Converting README.md to PDF..." Importance="high" />
+    <Exec Command="pandoc README.md -o &quot;obj/$(Configuration)/$(TargetFramework)/README.pdf&quot; --pdf-engine=lualatex -V documentclass=ltjarticle -V mainfont=&quot;Meiryo UI&quot; -V geometry:margin=2cm -V pagestyle=empty -V colorlinks=true -V linkcolor=cyan -V urlcolor=cyan -H header.tex" WorkingDirectory="$(ProjectDir)" />
+    <ItemGroup>
+      <Content Include="obj/$(Configuration)/$(TargetFramework)/README.pdf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+    <Message Text="README.pdf has been generated and will be included in the output." Importance="high" />
   </Target>
 
 </Project>
