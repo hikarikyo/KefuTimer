@@ -17,6 +17,7 @@ namespace KefuTimer
         private TimeSpan _timeRemaining;
         private TimeSpan _initialTime;
         private bool _timerRunning;
+        private bool _isOvertime = false; // Add this line
         private MediaPlayer _mediaPlayer;
         private MediaPlayer _timeUpMediaPlayer;
         private List<string> _bgmFiles = new List<string>(); // Store full paths
@@ -161,41 +162,88 @@ namespace KefuTimer
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            if (_timeRemaining.TotalSeconds > 0)
+            // Normal countdown
+            if (_timeRemaining.TotalSeconds > 0 && !_isOvertime)
             {
                 _timeRemaining = _timeRemaining.Subtract(TimeSpan.FromSeconds(1));
-                UpdateTimerDisplay();
-
                 if (_initialTime.TotalSeconds > 0)
                 {
                     taskbarItemInfo.ProgressValue = _timeRemaining.TotalSeconds / _initialTime.TotalSeconds;
                 }
             }
+            // Time's up or overtime logic
             else
             {
-                _timer.Stop();
-                _timerRunning = false;
+                // Transition to overtime
+                if (!_isOvertime)
+                {
+                    PlayTimeUpSound(); // Play sound at the moment it hits zero
+                    if (OvertimeModeCheckBox.IsChecked == true)
+                    {
+                        _isOvertime = true;
+                        _mediaPlayer.Stop(); // Stop BGM when entering overtime
+                        TimerDisplay.Foreground = Brushes.Red;
+                    }
+                    else
+                    {
+                        StopTimer(resetContent: true);
+                        return;
+                    }
+                }
+
+                // Overtime countdown
+                if (_isOvertime)
+                {
+                    if (_timeRemaining.TotalMinutes < 99 || (_timeRemaining.TotalMinutes == 99 && _timeRemaining.Seconds < 59))
+                    {
+                        _timeRemaining = _timeRemaining.Add(TimeSpan.FromSeconds(1));
+                    }
+                    else
+                    {
+                        StopTimer(resetContent: true);
+                    }
+                }
+            }
+            UpdateTimerDisplay();
+        }
+
+        private void StopTimer(bool resetContent)
+        {
+            _timer.Stop();
+            _timerRunning = false;
+            _mediaPlayer.Stop();
+            if (resetContent)
+            {
                 StartPauseButton.Content = "開始";
-                _mediaPlayer.Stop();
+            }
+            taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+        }
 
-                taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
-
-                if (_timeUpMediaPlayer.Source != null)
-                {
-                    _timeUpMediaPlayer.Stop();
-                    _timeUpMediaPlayer.Position = TimeSpan.Zero;
-                    _timeUpMediaPlayer.Play();
-                }
-                else
-                {
-                    SystemSounds.Exclamation.Play();
-                }
+        private void PlayTimeUpSound()
+        {
+            if (_timeUpMediaPlayer.Source != null)
+            {
+                _timeUpMediaPlayer.Stop();
+                _timeUpMediaPlayer.Position = TimeSpan.Zero;
+                _timeUpMediaPlayer.Play();
+            }
+            else
+            {
+                SystemSounds.Exclamation.Play();
             }
         }
 
+
         private void UpdateTimerDisplay()
         {
-            TimerDisplay.Text = _timeRemaining.ToString(@"mm\:ss");
+            if (_isOvertime)
+            {
+                TimerDisplay.Text = "+" + _timeRemaining.ToString(@"mm\:ss");
+            }
+            else
+            {
+                TimerDisplay.Text = _timeRemaining.ToString(@"mm\:ss");
+            }
         }
 
         private void StartPauseButton_Click(object sender, RoutedEventArgs e)
@@ -209,12 +257,12 @@ namespace KefuTimer
             }
             else
             {
-                if (_initialTime.TotalSeconds <= 0)
+                if (_initialTime.TotalSeconds <= 0 && !_isOvertime)
                 {
-                    return; // Do not start if time is zero
+                    return; // Do not start if time is zero and not in overtime
                 }
                 _timer.Start();
-                if (_mediaPlayer.Source != null)
+                if (_mediaPlayer.Source != null && !_isOvertime) // Don't restart BGM in overtime
                 {
                     _mediaPlayer.Play();
                 }
@@ -226,13 +274,11 @@ namespace KefuTimer
 
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
-            _timer.Stop();
-            _timerRunning = false;
-            _mediaPlayer.Stop();
+            StopTimer(resetContent: true);
+            _isOvertime = false;
+            TimerDisplay.Foreground = SystemColors.ControlTextBrush; // Reset to default color
             _timeRemaining = _initialTime;
             UpdateTimerDisplay();
-            StartPauseButton.Content = "開始";
-            taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
         }
 
         private void SetTimeButton_Click(object sender, RoutedEventArgs e)
@@ -249,9 +295,7 @@ namespace KefuTimer
                 if (minutes >= 0 && seconds >= 0 && seconds < 60)
                 {
                     _initialTime = new TimeSpan(0, minutes, seconds);
-                    _timeRemaining = _initialTime;
-                    UpdateTimerDisplay();
-                    taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+                    ResetToInitialTime();
                 }
                 else
                 {
@@ -275,12 +319,19 @@ namespace KefuTimer
             if (sender is Button button && int.TryParse(button.Tag.ToString(), out int minutes))
             {
                 _initialTime = new TimeSpan(0, minutes, 0);
-                _timeRemaining = _initialTime;
-                UpdateTimerDisplay();
                 MinutesInput.Text = minutes.ToString("D2");
                 SecondsInput.Text = "00";
-                taskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+                ResetToInitialTime();
             }
+        }
+        
+        private void ResetToInitialTime()
+        {
+            StopTimer(resetContent: true);
+            _isOvertime = false;
+            TimerDisplay.Foreground = SystemColors.ControlTextBrush;
+            _timeRemaining = _initialTime;
+            UpdateTimerDisplay();
         }
 
         private void UpdateMinutes(int change)

@@ -119,6 +119,7 @@
                 <StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Center">
                     <CheckBox x:Name="AlwaysOnTopCheckBox" Content="常に最前面に表示" Margin="0,0,10,0" Checked="AlwaysOnTopCheckBox_Checked" Unchecked="AlwaysOnTopCheckBox_Unchecked" Foreground="Gray" VerticalAlignment="Center"/>
                     <CheckBox x:Name="MuteBGMCheckBox" Content="BGMをミュート" Margin="10,0,0,0" Checked="MuteBGMCheckBox_Checked" Unchecked="MuteBGMCheckBox_Unchecked" Foreground="Gray" VerticalAlignment="Center"/>
+                    <CheckBox x:Name="OvertimeModeCheckBox" Content="時刻超過モード" Margin="10,0,0,0" Foreground="Gray" VerticalAlignment="Center"/>
                 </StackPanel>
             </StackPanel>
         </Grid>
