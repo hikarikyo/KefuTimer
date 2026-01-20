@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KefuTimer"
         mc:Ignorable="d"
-        Title="けふタイマー" SizeToContent="WidthAndHeight" Background="#FFF0F0F0"
-        Loaded="MainWindow_Loaded" SizeChanged="MainWindow_SizeChanged">
+        Title="けふタイマー" SizeToContent="WidthAndHeight" Background="#FFF0F0F0">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo x:Name="taskbarItemInfo" ProgressState="None" ProgressValue="0"/>
     </Window.TaskbarItemInfo>
@@ -111,7 +110,9 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-                <TextBlock x:Name="TimerDisplay" Text="00:00" FontSize="100" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                <Viewbox Height="130" Margin="0,0,0,10">
+                    <TextBlock x:Name="TimerDisplay" Text="00:00" FontWeight="Bold" HorizontalAlignment="Center"/>
+                </Viewbox>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button x:Name="StartPauseButton" Content="開始" Width="130" Height="50" Margin="0,0,10,0" Click="StartPauseButton_Click" FontSize="18" Style="{StaticResource PrimaryButton}"/>
                     <Button x:Name="ResetButton" Content="リセット" Width="130" Height="50" Click="ResetButton_Click" FontSize="18" Style="{StaticResource PrimaryButton}"/>

@@ -22,9 +22,6 @@ namespace KefuTimer
         private MediaPlayer _timeUpMediaPlayer;
         private List<string> _bgmFiles = new List<string>(); // Store full paths
         private List<string> _chimeFiles = new List<string>(); // Store full paths
-        private double _initialWidth;
-        private double _initialHeight;
-        private double _initialFontSize;
 
         public MainWindow()
         {
@@ -44,40 +41,6 @@ namespace KefuTimer
             this.Closing += MainWindow_Closing;
 
             LoadAndBindAudioFiles();
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Set the minimum size to the initial size
-            this.MinWidth = this.ActualWidth;
-            this.MinHeight = this.ActualHeight;
-
-            // Store initial values for scaling
-            _initialWidth = this.ActualWidth;
-            _initialHeight = this.ActualHeight;
-            _initialFontSize = TimerDisplay.FontSize;
-
-            // Stop auto-sizing to prevent feedback loops.
-            this.SizeToContent = SizeToContent.Manual;
-        }
-
-        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (_initialWidth > 0) // Ensure initial values are set
-            {
-                // Calculate the ratio of size change from the initial size
-                double widthRatio = e.NewSize.Width / _initialWidth;
-                double heightRatio = e.NewSize.Height / _initialHeight;
-
-                // Use the smaller ratio to ensure the text fits within the new window dimensions
-                double ratio = Math.Min(widthRatio, heightRatio);
-
-                // Calculate the new font size
-                double newFontSize = _initialFontSize * ratio;
-
-                // Set the new font size, ensuring it's a positive value
-                TimerDisplay.FontSize = newFontSize > 1 ? newFontSize : 1;
-            }
         }
 
         private void LoadAndBindAudioFiles()
@@ -130,7 +93,7 @@ namespace KefuTimer
             {
                 string selectedFile = _bgmFiles[BGMComboBox.SelectedIndex];
                 _mediaPlayer.Open(new Uri(selectedFile));
-                if (_timerRunning) // If timer is running, immediately play the new song
+                if (_timerRunning && !_isOvertime) // If timer is running and not in overtime, immediately play the new song
                 {
                     _mediaPlayer.Play();
                 }
@@ -194,7 +157,7 @@ namespace KefuTimer
                 // Overtime countdown
                 if (_isOvertime)
                 {
-                    if (_timeRemaining.TotalMinutes < 99 || (_timeRemaining.TotalMinutes == 99 && _timeRemaining.Seconds < 59))
+                    if (_timeRemaining < new TimeSpan(0, 99, 59))
                     {
                         _timeRemaining = _timeRemaining.Add(TimeSpan.FromSeconds(1));
                     }
